@@ -1,18 +1,22 @@
-#include "WiFi.h"
 #include "ESPAsyncWebServer.h"
+#include "WiFi.h"
+#include <Arduino.h>
 
 // Credentials
-const char* ssid     = "MyHopperServer";
-const char* password = "root";
+const char *ssid = "MyHopperServer";
+const char *password = "rootisMyPass";
 
 // AsyncWebServer port 80
 AsyncWebServer server(80);
 
-String getWeight(int ID) {
+// HTTP request
+String header;
+
+String getWeight() {
     double messured_weight = 0;
     // get weight;
 
-    for (int i = 0; i < 5; ++i){
+    for (int i = 0; i < 5; ++i) {
         digitalWrite(LED_BUILTIN, HIGH);
         delay(100);
         digitalWrite(LED_BUILTIN, LOW);
@@ -37,10 +41,9 @@ void setup() {
     Serial.print("AP IPAddress: ");
     Serial.println(IP);
 
-    server.on("/weight", HTTP_GET, [](AsyncWebServerRequest * request){
+    server.on("/weight", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send_P(200, "text/plain", getWeight().c_str());
-    })
-
+    });
 
     // server start
     server.begin();
@@ -49,8 +52,3 @@ void setup() {
 void loop() {
     //
 }
-
-// HTTP request
-String header;
-
-
