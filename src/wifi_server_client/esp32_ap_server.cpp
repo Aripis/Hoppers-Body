@@ -11,9 +11,9 @@ AsyncWebServer server(80);
 
 // HTTP request
 String header;
+double messured_weight = 0;
 
 String getWeight() {
-    double messured_weight = 0;
     // get weight;
 
     for (int i = 0; i < 5; ++i) {
@@ -22,6 +22,7 @@ String getWeight() {
         digitalWrite(LED_BUILTIN, LOW);
         delay(100);
     }
+    messured_weight++;
     return String(messured_weight);
 }
 
