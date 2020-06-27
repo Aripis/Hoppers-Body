@@ -1,6 +1,7 @@
 #include "HTTPClient.h"
 #include "WiFi.h"
 #include <Arduino.h>
+#include <string>
 
 // Credentials
 const char *ssid = "MyHopperServer";
@@ -8,9 +9,15 @@ const char *password = "rootisMyPass";
 
 const char *serverNameWeight = "http://192.168.4.1/weight";
 
-String weight;
-unsigned long previousMillis = 0;
 const long interval = 5000;
+
+String otherWeight, myWeight;
+
+double messured_weight = 0;
+
+unsigned long previousMillis = 0;
+
+unsigned long steps = 0;
 
 String httpGETRequest(const char *serverName) {
     HTTPClient http;
@@ -37,6 +44,19 @@ String httpGETRequest(const char *serverName) {
     return payload;
 }
 
+String getWeight() {
+    // get weight;
+
+    for (int i = 0; i < 5; ++i) {
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(100);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(100);
+    }
+    messured_weight += 0.5;
+    return String(messured_weight);
+}
+
 void setup(void) {
     Serial.begin(115200);
 
@@ -55,16 +75,42 @@ void setup(void) {
     Serial.println(WiFi.localIP());
 }
 
+bool isWalkingDualMode() {
+    return true;
+}
+
+bool isWalkingSingleMode() {
+    return false;
+}
+
 void loop() {
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= interval) {
+        Serial.println("--------------------------------");
         if (WiFi.status() == WL_CONNECTED) {
-            weight = httpGETRequest(serverNameWeight);
-            Serial.println("Curr weight: " + weight);
+            Serial.println("Connected to WiFi - dual mode");
+            otherWeight = httpGETRequest(serverNameWeight);
+            myWeight = getWeight();
+            double oW = atof(otherWeight.c_str());
+            double mW = atof(myWeight.c_str());
+            double currW = oW + mW;
+            Serial.print("Curr weight: ");
+            Serial.println(currW);
+
+            if (isWalkingDualMode()) {
+                steps++;
+                Serial.print("Incremented Steps => ");
+                Serial.println(steps);
+            }
+
             previousMillis = currentMillis;
         } else {
-            Serial.println("WiFi disconnected");
+            Serial.println("WiFi disconnected - switching to single mode");
+
+            previousMillis = currentMillis;
         }
+        Serial.println();
+        Serial.println("Sending data to Android app...");
     }
 }
